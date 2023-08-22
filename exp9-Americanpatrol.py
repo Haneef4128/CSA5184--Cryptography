@@ -1,51 +1,49 @@
-def find_position(matrix, letter):
-    for i, row in enumerate(matrix):
-        for j, col in enumerate(row):
-            if col == letter:
-                return (i, j)
-    return (-1, -1)
+def prepare_input(text):
+    text = text.replace(" ", "").upper()
+    return text
 
-def playfair_encrypt(matrix, plaintext):
-    ciphertext = ""
-    
-    # Prepare the plaintext: convert to uppercase, replace J with I, remove punctuation and spaces
-    plaintext = plaintext.upper().replace("J", "I").replace(".", "").replace(" ", "")
-    
-    # Break the plaintext into digraphs
-    i = 0
-    digraphs = []
-    while i < len(plaintext):
-        if i == len(plaintext) - 1:
-            digraphs.append(plaintext[i] + "X")
-            i += 1
-        elif plaintext[i] == plaintext[i + 1]:
-            digraphs.append(plaintext[i] + "X")
-            i += 1
+def find_char_position(matrix, char):
+    for row in range(5):
+        for col in range(5):
+            if matrix[row][col] == char:
+                return row, col
+    return -1, -1
+
+def playfair_decrypt(ciphertext, key):
+    decrypted_text = ""
+    index = 0
+
+    while index < len(ciphertext):
+        char1 = ciphertext[index]
+        char2 = ciphertext[index + 1]
+        index += 2
+
+        row1, col1 = find_char_position(key, char1)
+        row2, col2 = find_char_position(key, char2)
+
+        if row1 != -1 and row2 != -1:
+            if row1 == row2:
+                decrypted_text += key[row1][(col1 - 1) % 5] + key[row2][(col2 - 1) % 5]
+            elif col1 == col2:
+                decrypted_text += key[(row1 - 1) % 5][col1] + key[(row2 - 1) % 5][col2]
+            else:
+                decrypted_text += key[row1][col2] + key[row2][col1]
         else:
-            digraphs.append(plaintext[i] + plaintext[i + 1])
-            i += 2
+            decrypted_text += char1 + char2
 
-    for digraph in digraphs:
-        row1, col1 = find_position(matrix, digraph[0])
-        row2, col2 = find_position(matrix, digraph[1])
-        
-        if row1 == row2:
-            ciphertext += matrix[row1][(col1 + 1) % 5] + matrix[row2][(col2 + 1) % 5]
-        elif col1 == col2:
-            ciphertext += matrix[(row1 + 1) % 5][col1] + matrix[(row2 + 1) % 5][col2]
-        else:
-            ciphertext += matrix[row1][col2] + matrix[row2][col1]
-    
-    return ciphertext
+    return decrypted_text
 
-matrix = [
-    ['M', 'F', 'H', 'I', 'K'],
-    ['U', 'N', 'O', 'P', 'Q'],
-    ['Z', 'V', 'W', 'X', 'Y'],
-    ['E', 'L', 'A', 'R', 'G'],
-    ['D', 'S', 'T', 'B', 'C']
+key = [
+    ['K', 'X', 'J', 'E', 'Y'],
+    ['U', 'R', 'E', 'B', 'Z'],
+    ['W', 'H', 'T', 'F', 'S'],
+    ['C', 'G', 'A', 'M', 'D'],
+    ['P', 'Q', 'V', 'I', 'N']
 ]
 
-plaintext = "Must see you over Cadogan West. Coming at once."
-ciphertext = playfair_encrypt(matrix, plaintext)
-print("CipherText : ", ciphertext)
+ciphertext = "KXJEYUREBEZWEHEWRYTUHEYFSKREHEGOYFIWTTTUOLKSYCAJPOBOTEIZONTXBYBNTGONEYCUZWRGDSONSXBOUYWRHEBAAHYUSEDQ"
+
+ciphertext = prepare_input(ciphertext)
+decrypted_text = playfair_decrypt(ciphertext, key)
+
+print("Decrypted:", decrypted_text)
